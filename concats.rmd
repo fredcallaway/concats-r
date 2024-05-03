@@ -1,0 +1,470 @@
+---
+title: "Making R Suck Less:\n\nAn Ode to `...`"
+author: Fred Callaway
+date: May 3, 2024
+output: slidy_presentation
+---
+
+```{r, include=FALSE}
+VERSIONS = c('v5.6')
+knitr::opts_chunk$set(
+    fig.path="figs/",
+    warning=FALSE, message=FALSE, fig.width=3, fig.height=3, fig.align="center"
+)
+```
+
+```{r echo=FALSE}
+library(tidyverse)
+library(ggbeeswarm)
+library(patchwork)
+
+# general purpose plot aesthetics
+
+kable = knitr::kable
+
+default_palettes = list(
+  c("dodgerblue"),
+  c("dodgerblue", "coral"),
+  RColorBrewer::brewer.pal(6, "Set1")
+)
+
+options(
+  "max.print" = 100,
+  "width" = 150,
+  "ggplot2.discrete.colour" = default_palettes,
+  "ggplot2.discrete.fill" = default_palettes
+)
+
+theme_set(theme_bw(base_size = 14))
+theme_update(
+  panel.grid.major.x = element_blank(),
+  panel.grid.minor.x = element_blank(),
+  panel.grid.minor.y = element_blank(),
+  # panel.grid.major.y = element_blank(),
+  panel.grid.major.y = element_line(color="#EDEDED"),
+  strip.background = element_blank(),
+  strip.text.x = element_text(size=12),
+  strip.text.y = element_text(size=12),
+  legend.position="right",
+  panel.spacing = unit(1, "lines"),
+)
+
+update_geom_defaults("vline", list(linetype="dashed"))
+update_geom_defaults("abline", list(linetype="dashed"))
+update_geom_defaults("hline", list(linetype="dashed"))
+update_geom_defaults("line", list(linewidth = 1))
+update_geom_defaults("smooth", list(color="black"))
+update_geom_defaults("pointrange", list(size=.3))
+
+# our example dataset
+data("iris")
+```
+
+# The typical way
+
+```{r}
+iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
+  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+  geom_quasirandom(alpha=0.3) +
+  scale_colour_manual(values=c(
+    setosa = "#842EBD",
+    versicolor = "#CA26E2",
+    virginica = "#EB75F5"
+  )) +
+  theme(legend.position="none")
+
+```
+
+# The typical way
+
+
+```{r}
+
+iris %>% ggplot(aes(Species, Sepal.Length, color=Species)) +
+  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+  geom_quasirandom(alpha=0.3) +
+  scale_colour_manual(values=c(
+    setosa = "#842EBD",
+    versicolor = "#CA26E2",
+    virginica = "#EB75F5"
+  )) +
+  theme(legend.position="none")
+```
+
+# The typical way
+
+```{r}
+iris %>% ggplot(aes(Species, Petal.Width, color=Species)) +
+  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+  geom_quasirandom(alpha=0.3) +
+  scale_colour_manual(values=c(
+    setosa = "#842EBD",
+    versicolor = "#CA26E2",
+    virginica = "#EB75F5"
+  )) +
+  theme(legend.position="none")
+```
+
+# The typical way sucks
+
+```{r eval=FALSE}
+iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
+  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+  geom_quasirandom(alpha=0.3) +
+  scale_colour_manual(values=c(
+    setosa = "#842EBD",
+    versicolor = "#CA26E2",
+    virginica = "#EB75F5"
+  )) +
+  theme(legend.position="none")
+
+iris %>% ggplot(aes(Species, Sepal.Length, color=Species)) +
+  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+  geom_quasirandom(alpha=0.3) +
+  scale_colour_manual(values=c(
+    setosa = "#842EBD",
+    versicolor = "#CA26E2",
+    virginica = "#EB75F5"
+  )) +
+  theme(legend.position="none")
+
+iris %>% ggplot(aes(Species, Petal.Width, color=Species)) +
+  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+  geom_quasirandom(alpha=0.3) +
+  scale_colour_manual(values=c(
+    setosa = "#842EBD",
+    versicolor = "#CA26E2",
+    virginica = "#EB75F5"
+  )) +
+  theme(legend.position="none")
+```
+
+# Using a function with `{{var}}`
+
+```{r, fig.width=9}
+plot_species = function(data, yvar) {
+    data %>% ggplot(aes(Species, {{yvar}}, color=Species)) +
+        stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+        geom_quasirandom(alpha=0.3) +
+        scale_colour_manual(values=c(
+            setosa = "#842EBD",
+            versicolor = "#CA26E2",
+            virginica = "#EB75F5"
+    )) +
+        theme(legend.position="none")
+}
+
+iris %>% plot_species(Petal.Width) +  # library(patchwork)
+iris %>% plot_species(Petal.Length) +
+iris %>% plot_species(Petal.Width)
+```
+
+# Using a function with `{{var}}`
+
+[blog post](https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/#a-simpler-interpolation-pattern-with-)
+
+```{r}
+mean_by = function(data, var, by) {
+  data %>%
+    group_by({{ by }}) %>%
+    summarise("{{var}}" := max({{ var }}, na.rm = TRUE))
+}
+
+iris %>% mean_by(Petal.Width, by=Species) %>% kable
+```
+
+# Arbitrary arguments with `...`
+
+```{r fig.width=9}
+plot_relationship = function(data, ...) {
+    data %>% ggplot(aes(...)) +
+        geom_point(alpha=0.5) +
+        stat_smooth(method="lm",  alpha=0.2)
+}
+
+iris %>% plot_relationship(Petal.Width, Petal.Length) +
+iris %>% plot_relationship(Petal.Width, Sepal.Width) +
+iris %>% plot_relationship(Petal.Width, Sepal.Width, color=Species)
+
+```
+
+# `...` is friggin' sweet
+
+```{r}
+
+props = function(data, ...) {
+  data %>%
+  count(...) %>%
+  mutate(prop = n / sum(n), .keep="unused", by=...)
+}
+
+iris %>%
+  props(Species) %>%
+  kable
+```
+
+# `...` is friggin' sweet
+
+```{r, fig.width=6}
+drop_extreme = function(data, ..., q_lo=0, q_hi=0.95) {
+    data %>%
+        drop_na(...) %>%
+        filter(if_all(c(...), ~
+            between(.x, quantile(.x, q_lo), quantile(.x, q_hi))
+    ))
+}
+
+# <- is for sheeple
+bad_iris = iris %>% add_row(Petal.Length=0., Petal.Width=30)
+
+bad_plot = bad_iris %>%
+    plot_relationship(Petal.Width, Petal.Length)
+
+good_plot = bad_iris %>%
+    drop_extreme(Petal.Width, Petal.Length, q_lo=.025, q_hi=.975) %>%
+    plot_relationship(Petal.Width, Petal.Length)
+
+bad_plot + good_plot
+
+```
+
+# `...` is friggin' sweet
+
+- c.f. `function(...args)` in javascript or `def foo(*args, **kwargs)` in python
+- the general name for this is "varargs"
+- see [Hadley's book](https://adv-r.hadley.nz/functions.html?q=...#fun-dot-dot-dot) for deets
+
+
+# Another (more composable) approach for reusing plotting code
+
+```{r fig.width=6}
+iris_pal = scale_colour_manual(values=c(
+    setosa = "#842EBD",
+    versicolor = "#CA26E2",
+    virginica = "#EB75F5"
+))
+
+no_legend = theme(legend.position="none")
+
+point_lm = list(
+    geom_point(alpha=0.5),
+    stat_smooth(method="lm",  alpha=0.2)
+)
+
+iris %>% ggplot(aes(Petal.Width, Petal.Length)) + point_lm +
+iris %>% ggplot(aes(Petal.Width, Petal.Length, color=Species)) + point_lm + iris_pal + no_legend
+```
+
+# The best of both worlds??
+
+```{r}
+bars = function(..., err_width=.1) {
+    list(
+        stat_summary(fun=mean, geom="bar", ...),
+        stat_summary(fun.data=mean_cl_boot, geom="errorbar", width=err_width)
+    )
+}
+
+iris %>% ggplot(aes(Species, Petal.Width, fill=Species)) +
+    bars(width=.7, err_width=0.2, alpha=0.5) +
+    iris_pal + no_legend
+```
+
+```{r include=FALSE}
+robust = function(f, min_n=5) {
+    function(x) {
+        if (length(x) >= min_n) {
+            f(x)
+        } else {
+            NaN
+        }
+    }
+}
+
+points = function(min_n=5, ...) stat_summary(fun.data=robust(mean_cl_boot, min_n), ...)
+
+points_line = function(min_n=5, ...) {
+    list(
+        stat_summary(fun.data=robust(mean_cl_boot, min_n), ...),
+        stat_summary(fun=robust(mean, min_n), geom="line", ...)
+    )
+}
+```
+
+# More examples...
+
+```{r}
+# see code for robust definition -- it drops points with too few observations
+bin_points = function(bins, min_n=5, ...) {
+    stat_summary_bin(fun.data=robust(mean_cl_boot, min_n), bins=bins, ...)
+}
+
+bin_points_line = function(bins, min_n=5, ...) {
+    list(
+        stat_summary_bin(fun.data=robust(mean_cl_boot, min_n), bins=bins, ...),
+        stat_summary_bin(fun=robust(mean, min_n), bins=bins, ..., geom="line")
+    )
+}
+
+iris %>% ggplot(aes(Petal.Width, Petal.Length)) +
+  bin_points_line(bins=7)
+
+```
+
+# More examples...
+
+```{r, fig.width=9}
+
+linear_fit = function(alpha=0.2, ...) stat_smooth(method="lm",  alpha=alpha, ...)
+logistic_fit = function(alpha=0.2, ...) stat_smooth(method="glm", method.args = list(family="binomial"), alpha=alpha, ...)
+gam_fit = function(k=-1, ...) stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs", k=k), ...)
+
+p = iris %>% ggplot(aes(Petal.Width, Petal.Length))
+p + bin_points(7) + linear_fit() +
+p + bin_points(7) + gam_fit() +
+p + bin_points(7) + gam_fit(k=3, color="dodgerblue")
+```
+
+
+# Bonus: Automatically formatting plot labels
+
+See the source code for `pretty_labels` defintion.
+
+```{r include=FALSE}
+element_text_transform <- function(..., transform = identity) {
+    elem <- element_text(...)
+    elem$transform <- rlang::as_function(transform)
+    class(elem) <- c("element_text_transform", class(elem))
+    elem
+}
+
+element_grob.element_text_transform <- function(element, label = "", ...) {
+    label <- element$transform(label)
+    NextMethod()
+}
+
+# direct mapping from variable name to label
+pretty_names = list(
+    pid = "Participant"
+)
+
+# regex replacements applied to variable names
+pretty_replacements = c(
+    "1 ?\\* ?" = "",
+    "factor\\((.*)\\)" = "\\1",
+    "_" = " ",
+    "\\." = " ",
+    "\\bn\\b" = "#",
+    "\\bprop\\b" = "proportion"
+)
+
+# additional substitutions performed after capitalization
+pretty_fixes = c(
+    "Rt" = "RT"
+)
+
+pretty_name = function(lab) {
+    if (lab %in% names(pretty_names)) return(pretty_names[[lab]])
+    if (str_detect(lab, "β") || str_detect(lab, "γ")) return(lab)
+    if (nchar(lab) == 1) return(lab)
+    lab %>%
+        str_replace_all(pretty_replacements) %>%
+        # str_to_title %>%   # your choice
+        str_to_lower %>%
+        str_replace_all(pretty_fixes) %>%
+        gsub("(?!^)\\b(A|An|And|As|At|But|By|For|In|Nor|Of|On|Or|Per|The|To|Up|Vs)\\b", "\\L\\1", ., perl=TRUE)
+}
+
+
+pretty_name_compact = function(lab) {
+    name = pretty_name(lab)
+    if (str_detect(name, " ") && str_length(name) > 10) {
+        name = str_replace_all(name, " ", "\n")
+    }
+    name
+}
+
+pretty_labels = theme(
+  axis.title.x = element_text_transform(transform = pretty_name),
+  axis.title.y = element_text_transform(transform = pretty_name),
+  legend.title = element_text_transform(transform = pretty_name_compact),
+  strip.text = element_text_transform(transform = pretty_name)
+)
+```
+
+```{r, fig.width=9}
+p = iris %>% ggplot(aes(Petal.Width, Sepal.Width, color=Species)) +
+  geom_point(alpha=0.3) + linear_fit() +
+  iris_pal
+
+p + (p + pretty_labels)
+```
+
+# Bonus: simplifying regression syntax
+
+See the source code for `regress` defintion.
+
+```{r include=FALSE}
+library(formula.tools)
+library(broom)
+library(glue)
+library(lme4)
+library(broom.mixed)
+
+regress = function(data, form, logistic=F, mixed=F, group_var=NA, intercept=T, standardize=F) {
+    preds = paste(get.vars(rhs(form)), collapse=" + ")
+    data = tibble(data)  # to not mutate
+    if (standardize) {
+        for (k in get.vars(form)) {
+            if (!is.binary(data[[k]])) {
+                data[[k]] = zscore(data[[k]])
+            }
+        }
+    }
+    model = if (mixed || !is.na(group_var)) {
+        if (!is.na(group_var)) {
+            form = as.formula(glue("{form} + {1*intercept} + ({preds} + {1*intercept} || {group_var})"))
+        }
+        if (logistic) {
+            glmer(form, family=binomial, data=data)
+        } else {
+            lmer(form, data=data)
+        }
+    } else {
+        if (logistic) {
+            glm(form, family=binomial, data=data)
+        } else {
+            lm(form, data=data)
+        }
+    }
+    model
+}
+```
+
+
+```{r}
+iris %>%
+  filter(Species == "versicolor") %>%
+  regress(Sepal.Width ~ Petal.Width) %>%
+  tidy %>% kable
+
+```
+
+# Bonus: simplifying regression syntax (logistic)
+
+```{r}
+
+iris %>%
+  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T) %>%
+  tidy %>% kable
+```
+
+# Bonus: simplifying regression syntax (mixed effects)
+
+```{r}
+
+iris %>%
+  mutate(island = rep(1:15, 10)) %>%
+  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T, group_var="island") %>%
+  tidy %>% kable
+```
