@@ -1,6 +1,6 @@
 ---
 title: "Making R Suck Less:\n\nAn Ode to `...`"
-author: Fred Callaway
+author: https://github.com/fredcallaway/concats-r
 date: May 3, 2024
 output: slidy_presentation
 ---
