@@ -28,8 +28,6 @@ library(patchwork)
 
 # general purpose plot aesthetics
 
-kable = knitr::kable
-
 default_palettes = list(
   c("dodgerblue"),
   c("dodgerblue", "coral"),
@@ -72,14 +70,14 @@ data("iris")
 
 ```{r}
 iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
-  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
-  geom_quasirandom(alpha=0.3) +
-  scale_colour_manual(values=c(
-    setosa = "#842EBD",
-    versicolor = "#CA26E2",
-    virginica = "#EB75F5"
-  )) +
-  theme(legend.position="none")
+    stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+    geom_quasirandom(alpha=0.3) +
+    scale_colour_manual(values=c(
+        setosa = "#842EBD",
+        versicolor = "#CA26E2",
+        virginica = "#EB75F5"
+    )) +
+    theme(legend.position="none")
 
 ```
 
@@ -88,62 +86,97 @@ iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
 ```{r}
 
 iris %>% ggplot(aes(Species, Sepal.Length, color=Species)) +
-  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
-  geom_quasirandom(alpha=0.3) +
-  scale_colour_manual(values=c(
-    setosa = "#842EBD",
-    versicolor = "#CA26E2",
-    virginica = "#EB75F5"
-  )) +
-  theme(legend.position="none")
+    stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+    geom_quasirandom(alpha=0.3) +
+    scale_colour_manual(values=c(
+        setosa = "#842EBD",
+        versicolor = "#CA26E2",
+        virginica = "#EB75F5"
+    )) +
+    theme(legend.position="none")
 ```
 
 ## The typical way
 
 ```{r}
 iris %>% ggplot(aes(Species, Petal.Width, color=Species)) +
-  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
-  geom_quasirandom(alpha=0.3) +
-  scale_colour_manual(values=c(
-    setosa = "#842EBD",
-    versicolor = "#CA26E2",
-    virginica = "#EB75F5"
-  )) +
-  theme(legend.position="none")
+    stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+    geom_quasirandom(alpha=0.3) +
+    scale_colour_manual(values=c(
+        setosa = "#842EBD",
+        versicolor = "#CA26E2",
+        virginica = "#EB75F5"
+    )) +
+    theme(legend.position="none")
 ```
 
 # The typical way sucks {.code-right}
 
 ```{r eval=FALSE}
 iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
-  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
-  geom_quasirandom(alpha=0.3) +
-  scale_colour_manual(values=c(
-    setosa = "#842EBD",
-    versicolor = "#CA26E2",
-    virginica = "#EB75F5"
-  )) +
-  theme(legend.position="none")
+    stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+    geom_quasirandom(alpha=0.3) +
+    scale_colour_manual(values=c(
+        setosa = "#842EBD",
+        versicolor = "#CA26E2",
+        virginica = "#EB75F5"
+    )) +
+    theme(legend.position="none")
 
 iris %>% ggplot(aes(Species, Sepal.Length, color=Species)) +
-  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
-  geom_quasirandom(alpha=0.3) +
-  scale_colour_manual(values=c(
-    setosa = "#842EBD",
-    versicolor = "#CA26E2",
-    virginica = "#EB75F5"
-  )) +
-  theme(legend.position="none")
+    stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+    geom_quasirandom(alpha=0.3) +
+    scale_colour_manual(values=c(
+        setosa = "#842EBD",
+        versicolor = "#CA26E2",
+        virginica = "#EB75F5"
+    )) +
+    theme(legend.position="none")
 
 iris %>% ggplot(aes(Species, Petal.Width, color=Species)) +
-  stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
-  geom_quasirandom(alpha=0.3) +
-  scale_colour_manual(values=c(
-    setosa = "#842EBD",
-    versicolor = "#CA26E2",
-    virginica = "#EB75F5"
-  )) +
-  theme(legend.position="none")
+    stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+    geom_quasirandom(alpha=0.3) +
+    scale_colour_manual(values=c(
+        setosa = "#842EBD",
+        versicolor = "#CA26E2",
+        virginica = "#EB75F5"
+    )) +
+    theme(legend.position="none")
+```
+
+
+## Using a function?
+
+```{r fig.width=4}
+plot_species = function(data, yvar) {
+    data %>% ggplot(aes(Species, yvar, color=Species)) +
+        stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+        geom_quasirandom(alpha=0.3) +
+        scale_colour_manual(values=c(
+            setosa = "#842EBD",
+            versicolor = "#CA26E2",
+            virginica = "#EB75F5"
+        )) + theme(legend.position="none")
+}
+
+iris %>% plot_species("Petal.Width")
+```
+
+## Using a function?
+
+```{r error=TRUE}
+plot_species = function(data, yvar) {
+    data %>% ggplot(aes(Species, yvar, color=Species)) +
+        stat_summary(fun.data=mean_cl_boot, geom="pointrange") +
+        geom_quasirandom(alpha=0.3) +
+        scale_colour_manual(values=c(
+            setosa = "#842EBD",
+            versicolor = "#CA26E2",
+            virginica = "#EB75F5"
+        )) + theme(legend.position="none")
+}
+
+iris %>% plot_species(Petal.Width)
 ```
 
 ## Using a function with `{{var}}`
@@ -172,9 +205,9 @@ See more on Hadley's [blog post](https://www.tidyverse.org/blog/2019/06/rlang-0-
 
 ```{r}
 mean_by = function(data, var, by) {
-  data %>%
-    group_by({{ by }}) %>%
-    summarise("{{var}}" := max({{ var }}, na.rm = TRUE))
+    data %>%
+        group_by({{ by }}) %>%
+        summarise("{{var}}" := max({{ var }}, na.rm = TRUE))
 }
 
 iris %>% mean_by(Petal.Width, by=Species)
@@ -201,14 +234,14 @@ iris %>% plot_relationship(Petal.Width, Sepal.Width, color=Species)
 ```{r}
 
 props = function(data, ...) {
-  data %>%
-  count(...) %>%
-  mutate(prop = n / sum(n), .keep="unused", by=...)
+    data %>%
+    count(...) %>%
+    mutate(prop = n / sum(n), .keep="unused")
 }
 
 iris %>%
-  props(Species) %>%
-  kable
+    group_by(Species) %>%
+    props(Sepal.Length > 5, Sepal.Width > 3)
 ```
 
 ---
@@ -238,7 +271,7 @@ bad_plot + good_plot
 - see [Hadley's book](https://adv-r.hadley.nz/functions.html?q=...#fun-dot-dot-dot) for deets
  -->
 
-# A more composable approach
+# A more composable approach to plotting: Variables are a thing
 
 ---
 
@@ -247,7 +280,8 @@ iris_pal = scale_colour_manual(values=c(
     setosa = "#842EBD",
     versicolor = "#CA26E2",
     virginica = "#EB75F5"
-))
+), aesthetics=c("fill", "colour"))
+
 
 no_legend = theme(legend.position="none")
 
@@ -264,7 +298,7 @@ iris %>% ggplot(aes(Petal.Width, Petal.Length, color=Species)) +
 ## ¿Por qué no los dos?
 
 ```{r}
-bars = function(..., err_width=.1) {
+psych_bars = function(..., err_width=.1) {
     list(
         stat_summary(fun=mean, geom="bar", ...),
         stat_summary(fun.data=mean_cl_boot, geom="errorbar", width=err_width)
@@ -272,7 +306,7 @@ bars = function(..., err_width=.1) {
 }
 
 iris %>% ggplot(aes(Species, Petal.Width, fill=Species)) +
-    bars(width=.7, err_width=0.2, alpha=0.5) +
+    psych_bars(width=.7, err_width=0.2, alpha=0.5) +
     iris_pal + no_legend
 ```
 
@@ -295,16 +329,16 @@ points_line = function(min_n=5, ...) {
         stat_summary(fun=robust(mean, min_n), geom="line", ...)
     )
 }
+
+bin_points = function(bins, min_n=5, ...) {
+    stat_summary_bin(fun.data=robust(mean_cl_boot, min_n), bins=bins, ...)
+}
 ```
 
 ---
 
 ```{r}
 # see code for robust definition -- it drops points with too few observations
-bin_points = function(bins, min_n=5, ...) {
-    stat_summary_bin(fun.data=robust(mean_cl_boot, min_n), bins=bins, ...)
-}
-
 bin_points_line = function(bins, min_n=5, ...) {
     list(
         stat_summary_bin(fun.data=robust(mean_cl_boot, min_n), bins=bins, ...),
@@ -406,8 +440,8 @@ pretty_labels = theme(
 
 ```{r, fig.width=9}
 p = iris %>% ggplot(aes(Petal.Width, Sepal.Width, color=Species)) +
-  geom_point(alpha=0.3) + linear_fit() +
-  iris_pal
+    geom_point(alpha=0.3) + linear_fit() +
+    iris_pal
 
 p + (p + pretty_labels)
 ```
@@ -454,8 +488,8 @@ regress = function(data, form, logistic=F, mixed=F, group_var=NA, intercept=T, s
 
 ```{r}
 iris %>%
-  filter(Species == "versicolor") %>%
-  regress(Sepal.Width ~ Petal.Width)
+    filter(Species == "versicolor") %>%
+    regress(Sepal.Width ~ Petal.Width)
 
 ```
 
@@ -466,7 +500,7 @@ See the [source code](https://github.com/fredcallaway/concats-r/blob/master/main
 ```{r}
 
 iris %>%
-  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T)
+    regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T)
 ```
 
 ## Bonus: Simplifying regression syntax
@@ -476,6 +510,6 @@ See the [source code](https://github.com/fredcallaway/concats-r/blob/master/main
 ```{r}
 
 iris %>%
-  mutate(island = rep(1:15, 10)) %>%
-  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T, group_var="island")
+    mutate(island = rep(1:15, 10)) %>%
+    regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T, group_var="island")
 ```
