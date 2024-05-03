@@ -340,7 +340,7 @@ p + bin_points(7) + gam_fit(k=3, color="dodgerblue")
 
 ## Bonus: Automatically formatting plot labels
 
-See the source code for `pretty_labels` defintion.
+See the [source code](https://github.com/fredcallaway/concats-r/blob/master/main.rmd) for `pretty_labels` defintion.
 
 ```{r include=FALSE}
 element_text_transform <- function(..., transform = identity) {
@@ -414,7 +414,7 @@ p + (p + pretty_labels)
 
 ## Bonus: Simplifying regression syntax
 
-See the source code for `regress` defintion.
+See the [source code](https://github.com/fredcallaway/concats-r/blob/master/main.rmd) for `regress` defintion.
 
 ```{r include=FALSE}
 library(formula.tools)
@@ -461,7 +461,7 @@ iris %>%
 
 ## Bonus: Simplifying regression syntax
 
-See the source code for `regress` defintion.
+See the [source code](https://github.com/fredcallaway/concats-r/blob/master/main.rmd) for `regress` defintion.
 
 ```{r}
 
@@ -471,7 +471,7 @@ iris %>%
 
 ## Bonus: Simplifying regression syntax
 
-See the source code for `regress` defintion.
+See the [source code](https://github.com/fredcallaway/concats-r/blob/master/main.rmd) for `regress` defintion.
 
 ```{r}
 
