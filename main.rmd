@@ -1,9 +1,17 @@
 ---
-title: "Making R Suck Less:\n\nAn Ode to `...`"
+title: "Making R Suck Less:\nAn Ode to `...`"
 author: https://github.com/fredcallaway/concats-r
 date: May 3, 2024
-output: slidy_presentation
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    css: styles.css
 ---
+
+<link rel=stylesheet href="styles.css" type="text/css">
+
 
 ```{r, include=FALSE}
 VERSIONS = c('v5.6')
@@ -60,7 +68,7 @@ update_geom_defaults("pointrange", list(size=.3))
 data("iris")
 ```
 
-# The typical way
+## The typical way
 
 ```{r}
 iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
@@ -75,8 +83,7 @@ iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
 
 ```
 
-# The typical way
-
+## The typical way
 
 ```{r}
 
@@ -91,7 +98,7 @@ iris %>% ggplot(aes(Species, Sepal.Length, color=Species)) +
   theme(legend.position="none")
 ```
 
-# The typical way
+## The typical way
 
 ```{r}
 iris %>% ggplot(aes(Species, Petal.Width, color=Species)) +
@@ -105,7 +112,7 @@ iris %>% ggplot(aes(Species, Petal.Width, color=Species)) +
   theme(legend.position="none")
 ```
 
-# The typical way sucks
+# The typical way sucks {.code-right}
 
 ```{r eval=FALSE}
 iris %>% ggplot(aes(Species, Sepal.Width, color=Species)) +
@@ -139,7 +146,7 @@ iris %>% ggplot(aes(Species, Petal.Width, color=Species)) +
   theme(legend.position="none")
 ```
 
-# Using a function with `{{var}}`
+## Using a function with `{{var}}`
 
 ```{r, fig.width=9}
 plot_species = function(data, yvar) {
@@ -150,8 +157,7 @@ plot_species = function(data, yvar) {
             setosa = "#842EBD",
             versicolor = "#CA26E2",
             virginica = "#EB75F5"
-    )) +
-        theme(legend.position="none")
+        )) + theme(legend.position="none")
 }
 
 iris %>% plot_species(Petal.Width) +  # library(patchwork)
@@ -159,9 +165,10 @@ iris %>% plot_species(Petal.Length) +
 iris %>% plot_species(Petal.Width)
 ```
 
-# Using a function with `{{var}}`
+## Using a function with `{{var}}`
 
-[blog post](https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/#a-simpler-interpolation-pattern-with-)
+
+See more on Hadley's [blog post](https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/#a-simpler-interpolation-pattern-with-)
 
 ```{r}
 mean_by = function(data, var, by) {
@@ -170,10 +177,11 @@ mean_by = function(data, var, by) {
     summarise("{{var}}" := max({{ var }}, na.rm = TRUE))
 }
 
-iris %>% mean_by(Petal.Width, by=Species) %>% kable
+iris %>% mean_by(Petal.Width, by=Species)
 ```
 
-# Arbitrary arguments with `...`
+
+## Arbitrary arguments with `...`
 
 ```{r fig.width=9}
 plot_relationship = function(data, ...) {
@@ -188,7 +196,7 @@ iris %>% plot_relationship(Petal.Width, Sepal.Width, color=Species)
 
 ```
 
-# `...` is friggin' sweet
+## Arbitrary arguments with `...`
 
 ```{r}
 
@@ -203,7 +211,7 @@ iris %>%
   kable
 ```
 
-# `...` is friggin' sweet
+---
 
 ```{r, fig.width=6}
 drop_extreme = function(data, ..., q_lo=0, q_hi=0.95) {
@@ -214,28 +222,25 @@ drop_extreme = function(data, ..., q_lo=0, q_hi=0.95) {
     ))
 }
 
-# <- is for sheeple
 bad_iris = iris %>% add_row(Petal.Length=0., Petal.Width=30)
-
-bad_plot = bad_iris %>%
-    plot_relationship(Petal.Width, Petal.Length)
+bad_plot = bad_iris %>% plot_relationship(Petal.Width, Petal.Length)
 
 good_plot = bad_iris %>%
     drop_extreme(Petal.Width, Petal.Length, q_lo=.025, q_hi=.975) %>%
     plot_relationship(Petal.Width, Petal.Length)
 
 bad_plot + good_plot
-
 ```
 
-# `...` is friggin' sweet
-
+<!--
 - c.f. `function(...args)` in javascript or `def foo(*args, **kwargs)` in python
 - the general name for this is "varargs"
 - see [Hadley's book](https://adv-r.hadley.nz/functions.html?q=...#fun-dot-dot-dot) for deets
+ -->
 
+# A more composable approach
 
-# Another (more composable) approach for reusing plotting code
+---
 
 ```{r fig.width=6}
 iris_pal = scale_colour_manual(values=c(
@@ -252,10 +257,11 @@ point_lm = list(
 )
 
 iris %>% ggplot(aes(Petal.Width, Petal.Length)) + point_lm +
-iris %>% ggplot(aes(Petal.Width, Petal.Length, color=Species)) + point_lm + iris_pal + no_legend
+iris %>% ggplot(aes(Petal.Width, Petal.Length, color=Species)) +
+    point_lm + iris_pal + no_legend
 ```
 
-# The best of both worlds??
+## ¿Por qué no los dos?
 
 ```{r}
 bars = function(..., err_width=.1) {
@@ -291,7 +297,7 @@ points_line = function(min_n=5, ...) {
 }
 ```
 
-# More examples...
+---
 
 ```{r}
 # see code for robust definition -- it drops points with too few observations
@@ -311,13 +317,19 @@ iris %>% ggplot(aes(Petal.Width, Petal.Length)) +
 
 ```
 
-# More examples...
+---
 
 ```{r, fig.width=9}
 
-linear_fit = function(alpha=0.2, ...) stat_smooth(method="lm",  alpha=alpha, ...)
-logistic_fit = function(alpha=0.2, ...) stat_smooth(method="glm", method.args = list(family="binomial"), alpha=alpha, ...)
-gam_fit = function(k=-1, ...) stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs", k=k), ...)
+linear_fit = function(alpha=0.2, ...) {
+    stat_smooth(method="lm",  alpha=alpha, ...)
+}
+logistic_fit = function(alpha=0.2, ...) {
+    stat_smooth(method="glm", method.args = list(family="binomial"), alpha=alpha, ...)
+}
+gam_fit = function(k=-1, ...) {
+    stat_smooth(method = "gam", formula = y ~ s(x, bs = "cs", k=k), ...)
+}
 
 p = iris %>% ggplot(aes(Petal.Width, Petal.Length))
 p + bin_points(7) + linear_fit() +
@@ -326,7 +338,7 @@ p + bin_points(7) + gam_fit(k=3, color="dodgerblue")
 ```
 
 
-# Bonus: Automatically formatting plot labels
+## Bonus: Automatically formatting plot labels
 
 See the source code for `pretty_labels` defintion.
 
@@ -400,16 +412,14 @@ p = iris %>% ggplot(aes(Petal.Width, Sepal.Width, color=Species)) +
 p + (p + pretty_labels)
 ```
 
-# Bonus: simplifying regression syntax
+## Bonus: Simplifying regression syntax
 
 See the source code for `regress` defintion.
 
 ```{r include=FALSE}
 library(formula.tools)
-library(broom)
 library(glue)
 library(lme4)
-library(broom.mixed)
 
 regress = function(data, form, logistic=F, mixed=F, group_var=NA, intercept=T, standardize=F) {
     preds = paste(get.vars(rhs(form)), collapse=" + ")
@@ -445,26 +455,27 @@ regress = function(data, form, logistic=F, mixed=F, group_var=NA, intercept=T, s
 ```{r}
 iris %>%
   filter(Species == "versicolor") %>%
-  regress(Sepal.Width ~ Petal.Width) %>%
-  tidy %>% kable
+  regress(Sepal.Width ~ Petal.Width)
 
 ```
 
-# Bonus: simplifying regression syntax (logistic)
+## Bonus: Simplifying regression syntax
+
+See the source code for `regress` defintion.
 
 ```{r}
 
 iris %>%
-  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T) %>%
-  tidy %>% kable
+  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T)
 ```
 
-# Bonus: simplifying regression syntax (mixed effects)
+## Bonus: Simplifying regression syntax
+
+See the source code for `regress` defintion.
 
 ```{r}
 
 iris %>%
   mutate(island = rep(1:15, 10)) %>%
-  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T, group_var="island") %>%
-  tidy %>% kable
+  regress(Species == "versicolor" ~ Sepal.Width + Petal.Width, logistic=T, group_var="island")
 ```

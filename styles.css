@@ -1,0 +1,18 @@
+.code-right pre {
+    font-size: 8pt !important;
+    margin-left: 700px;
+    padding-left: 20px;
+}
+
+table.rmdtable th {
+    background: #303030;
+}
+
+slides slide {
+    background-image: none;
+    padding: 20px 40px;
+}
+
+slides > slide > hgroup + article {
+    margin-top: 15px;
+}
